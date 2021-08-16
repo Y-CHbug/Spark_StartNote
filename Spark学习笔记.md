@@ -215,3 +215,141 @@ object WordCount {
 }
 ```
 
+## 创建RDD的默认分区规则
+
+### 从集合中创建RDD
+
+从集合中创建RDD取于分配给应用的CPU核数
+
+`val conf: SparkConf = new SparkConf().setAppName("Spark03_Partition_default").setMaster("local[*]")`
+
+### 读取外部文件创建RDD
+
+读取外部文件创建RDD，取决于分配给应用的CPU核数和2取最小值。
+
+在textFile方法中的第二个参数minPartitions表示最小分区数，是最小，不是实际的分区个数，在实际计算分区个数的时候，会根据文件的总大小个最小分区数进行相除运算，如果余数为0，那么最小分区数就是最终实际的分区个数；如果余数不为0，实际分区个数要经过计算才能得到。
+
+## 转换算子
+
+### Value类型
+
+#### map
+
+**rdd.map(f:Int=>U)**
+
+参数f是一个函数，它可以接受一个参数，当某个rdd执行map方法时，会遍历该rdd中的每一个数据项，并依次应用f函数，从而参数一个新的rdd，即这个新的rdd中的每一个元素都是原来rdd中每一个元素依次应用f函数而得到的（分区不变，数据类型可能改变）
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val resRDD: RDD[Int] = listRDD.map(_ + 1) // 使集合中的每一个元素都加1
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+```
+
+#### mapPartitions
+
+**rdd.mapPartitions(f:Iterator[U]=>Iterator[U])**
+
+以分区为单位执行map，Map是一次处理一个元素，mapPartitions()是一次处理一个分区的数据
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val resRDD: RDD[Int] = listRDD.mapPartitions(_.map(_+1)) // 使集合中的每一个元素都加1，注意：这里的map是方法不是算子
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+```
+
+注意：Iterator用完即丢，并且会持续更新迭代器的状态
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val resRDD: RDD[Int] = listRDD.mapPartitions(it => {
+            it.foreach(_+1) // foreach()返回值是void，map的返回值是Iterator，而且Iterator数据用完即丢
+            println(">>>" + it.toString()) // // 此时迭代器中无数据
+            it
+        })
+
+        resRDD.collect().foreach(println) // 注意是没有输出结果的
+
+        sc.stop()
+    }
+}
+```
+
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+>>>empty iterator
+
+Process finished with exit code 0
+
+#### map和mapPartitions的区别
+
+map():每次处理一条数据，mapPartitions()每次处理一个分区的数据，这个分区的数据处理完后，原RDD中分区的数据才能释放，可能导致OOM。开发经验：当内存空间较大的时建议使用mapPartitions以提高效率。
+
+#### mapPartitionsWithIndex
+
+**rdd.mapPartitionsWithIndex(f:(Int,Iterator[U])=>Iterator[U])**
+
+类似mapPartitions比mapPartitions多了一个分区的编号，可以单独对某一个分区做特殊的操作
+

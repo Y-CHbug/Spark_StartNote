@@ -330,18 +330,17 @@ object Text {
         sc.stop()
     }
 }
+/*
+empty iterator
+empty iterator
+empty iterator
+empty iterator
+empty iterator
+empty iterator
+empty iterator
+empty iterator
+*/
 ```
-
->>>empty iterator
->>>empty iterator
->>>empty iterator
->>>empty iterator
->>>empty iterator
->>>empty iterator
->>>empty iterator
->>>empty iterator
-
-Process finished with exit code 0
 
 #### map和mapPartitions的区别
 
@@ -351,5 +350,244 @@ map():每次处理一条数据，mapPartitions()每次处理一个分区的数�
 
 **rdd.mapPartitionsWithIndex(f:(Int,Iterator[U])=>Iterator[U])**
 
-类似mapPartitions比mapPartitions多了一个分区的编号，可以单独对某一个分区做特殊的操作
+类似mapPartitions比mapPartitions多了一个分区的编号，可以单独对某一个分区做特殊的操作。参数是一个元组，元组第一个元素代表分区编号，第二个元素是当前分区的迭代器。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val resRDD: RDD[Int] = listRDD.mapPartitionsWithIndex((index, iter) =>{
+            println("分区编号：" + index + ">>> " + iter.mkString(" "))
+            iter
+        }) // 打印listRDD中的数据，并且附带分区
+
+        resRDD.collect()
+
+        sc.stop()
+    }
+}
+/*
+输出结果：
+
+分区编号：7>>>5
+分区编号：1>>>1
+分区编号：5>>>
+分区编号：0>>>
+分区编号：2>>>
+分区编号：3>>>2
+分区编号：6>>>4
+分区编号：4>>>3
+*/
+```
+
+#### flatMap
+
+**rdd.flatMap(f:U=>TraversableOnce[U])**
+
+与map操作类似，将RDD中的每一个元素通过应用f函数依次转换为新的元素，并封装到RDD中，区别在flatMap()操作中，f函数的返回值是一个集合。并且会将每一个集合中的元素拆分出来放到新的RDD中。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[List[Int]] = sc.parallelize(List(List(1, 2, 3, 4, 5), List(6, 7, 8)))
+
+        val resRDD: RDD[Int] = listRDD.flatMap(f => f)
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+2
+3
+4
+5
+6
+7
+8
+*/
+```
+
+#### glom
+
+**rdd.glom()**
+
+该算子将RDD中每一个分区中的数据变成一个数组，并放置在新的RDD中。数组中元素的类型与原分区中的类型一致。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val resRDD: RDD[Array[Int]] = listRDD.glom()
+
+        resRDD.collect().foreach(f => println(f.mkString(" ")))
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+
+1
+
+2
+3
+
+4
+5
+
+*/
+```
+
+#### groupBy
+
+**rdd.groupBy(f:U=>K)**
+
+分组，按照传入函数的返回值进行分组，将相同的key对应的值放到一个迭代器中，groupBy会存在shuffle的过程
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val res: RDD[(Boolean, Iterable[Int])] = listRDD.groupBy(_ >= 2) // 将大于等于2的放到一个分区中
+
+        res.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+(false,CompactBuffer(1))
+(true,CompactBuffer(2, 3, 4, 5))
+*/
+```
+
+#### filter
+
+**rdd.filter(f:U=>Boolean)**
+
+filter算子接收一个返回值为布尔类型的函数作为参数，当某个RDD调用filter方法时，会对该RDD中每一个元素应用f函数，如果返回值类型为true，则该元素会被添加到新的RDD中
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val res: RDD[Int] = listRDD.filter(_ > 3) // 取大于3的元素
+
+        res.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+4
+5
+*/
+```
+
+#### sample
+
+**rdd.sample(withReplacement:Boolean,fraction:Double,seed:Long=Utils.random.nextLong)**
+
+sample采样算子，withReplacement表示抽出的算子是否放回，true为有放回的抽样，false为不放回的抽样；fraction：当withReplacement = false时，选择每一个元素的概率取值在[0, 1]之间，当withReplacement = true时，选择每一个元素的期望次数，取值必须大于等于0；seed表示指定随机数生成器的种子，抽取算法初始值，一般不需要指定。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
+
+        val res: RDD[Int] = listRDD.sample(false, 0.5) // 不放回的抽取，抽取每一个元素的概率是0.5
+
+        res.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+```
 

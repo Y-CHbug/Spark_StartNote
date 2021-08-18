@@ -591,3 +591,135 @@ object Text {
 }
 ```
 
+#### distinct
+
+**rdd.distinct()**
+
+distinct()去重，并将去重后的元素放回到新的RDD中，默认情况下，distinct会生成与原RDD分区个数相同的分区数
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val sourceRDD:RDD[Int] = sc.parallelize(List(1, 1, 2, 2, 3, 3))
+
+        val resRDD:RDD[Int] = sourceRDD.distinct()
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+2
+3
+*/
+```
+
+#### coalesce和repartition
+
+**rdd.coalesce(numPartitions:Int, shuffle:Boolean = false)**
+
+**rdd.repartition(numpartitions:Int)**
+
+coalesce()和repartition()都可以修改当前的分区数，coalesce()默认第二个参数为false，表示不进行shuffle，如果第二个参数不设置，coalesce是无法扩大分区的个数，只能缩减分区的个数。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val sourceRDD:RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5), 3) // 定义分区数为3
+
+        val coalesceRDD:RDD[Int] = sourceRDD.coalesce(4,true) // 扩大分区
+//        val coalesceRDD:RDD[Int] = sourceRDD.coalesce(2) // 缩小分区
+//        val coalesceRDD:RDD[Int] = sourceRDD.repartition(4) // 扩大分区
+
+
+        val resRDD:RDD[Int] = coalesceRDD.mapPartitionsWithIndex((num, iter) =>{
+            println(num + "---->" + iter.mkString(" "))
+            iter
+        })
+
+        resRDD.collect()
+
+        sc.stop()
+    }
+}
+```
+
+#### sortBy
+
+**rdd.sortBy(f:U=>K, ascending:Boolean = true)**
+
+sortBy该操作用于排序数据，在排序之前，可以将数据通过f函数进行处理，之后按照f函数处理的结果进行排序，默认为正序排列。排列后产生的RDD的分区个与原分区数一致，底层有shuffle操作
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args : Array[String]) : Unit = {
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val sourceRDD:RDD[String] = sc.parallelize(List("1", "3", "5", "2", "4"))
+
+        val resRDD: RDD[String] = sourceRDD.sortBy(f => f.toInt, false)
+
+        resRDD.collect().foreach(println)
+
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+2
+3
+4
+5
+*/
+```
+
+#### pipe
+
+**rdd.pipe(command:String)**
+
+pipe()管道，针对每个分区，都调用一次的shell脚本，返回输出的RDD
+
+### 双Value类型
+
+#### union

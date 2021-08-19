@@ -158,7 +158,7 @@ val rdd2: RDD[String] = sc.textFile("hdfs://hadoop104:8020/input")
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>com.yue.spark.WordCount</mainClass>
+                            <mainClass>com.yue.spark.****</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
@@ -682,7 +682,6 @@ sortBy该操作用于排序数据，在排序之前，可以将数据通过f函�
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
 
-
 /**
  * TODO
  *
@@ -723,3 +722,169 @@ pipe()管道，针对每个分区，都调用一次的shell脚本，返回输出
 ### 双Value类型
 
 #### union
+
+**rdd.union(other:RDD[U])**
+
+该算子用来求两个rdd的并集，该并集和数学上的并集并不相同，该并集并不去重
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args:Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
+        val rdd2: RDD[Int] = sc.parallelize(List(2, 3, 4, 5, 6))
+
+        val rdd3: RDD[Int] = rdd1.union(rdd2)
+
+        rdd3.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+2
+3
+4
+5
+2
+3
+4
+5
+6
+*/
+```
+
+#### intersection
+
+**rdd.intersection(other:RDD[U])**
+
+该算子用来求两个RDD之间交集的部分
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args:Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
+        val rdd2: RDD[Int] = sc.parallelize(List(2, 3, 4, 5, 6))
+
+        val rdd3: RDD[Int] = rdd1.intersection(rdd2)
+
+        rdd3.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+2
+3
+4
+5
+*/
+```
+
+#### subtract
+
+**rdd.subtract(other:RDD[U])**
+
+该算子用来求两个RDD之间的差集
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args:Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
+        val rdd2: RDD[Int] = sc.parallelize(List(2, 3, 4, 5, 6))
+
+        val rdd3: RDD[Int] = rdd1.subtract(rdd2)
+
+        rdd3.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+*/
+```
+
+#### zip
+
+**rdd.zip(other:RDD[U])**
+
+对两个RDD做拉链操作，如果两个rdd元素个数不一致，就会报错，分区数不相同也会报错，要求：分区数必须一致，分区中的个数也要相同。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Text {
+    def main(args:Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val sc:SparkContext = new SparkContext(conf)
+
+        val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5), 2)
+        val rdd2: RDD[Int] = sc.parallelize(List(2, 3, 4, 5, 6), 2)
+
+        val rdd3: RDD[(Int, Int)] = rdd1.zip(rdd2)
+
+        rdd3.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+(1,2)
+(2,3)
+(3,4)
+(4,5)
+(5,6)
+*/
+```
+
+### key-Value类型
+
+#### 

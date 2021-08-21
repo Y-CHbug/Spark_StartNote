@@ -250,9 +250,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -283,9 +283,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -363,9 +363,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -411,9 +411,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[List[Int]] = sc.parallelize(List(List(1, 2, 3, 4, 5), List(6, 7, 8)))
@@ -455,9 +455,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -500,9 +500,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -537,9 +537,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -575,9 +575,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc = new SparkContext(conf)
 
         val listRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5))
@@ -607,9 +607,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Test")
         val sc:SparkContext = new SparkContext(conf)
 
         val sourceRDD:RDD[Int] = sc.parallelize(List(1, 1, 2, 2, 3, 3))
@@ -648,9 +648,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Test")
         val sc:SparkContext = new SparkContext(conf)
 
         val sourceRDD:RDD[Int] = sc.parallelize(List(1, 2, 3, 4, 5), 3) // 定义分区数为3
@@ -688,9 +688,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args : Array[String]) : Unit = {
-        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val conf:SparkConf = new SparkConf().setMaster("local[*]").setAppName("Test")
         val sc:SparkContext = new SparkContext(conf)
 
         val sourceRDD:RDD[String] = sc.parallelize(List("1", "3", "5", "2", "4"))
@@ -737,9 +737,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args:Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc:SparkContext = new SparkContext(conf)
 
         val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
@@ -783,9 +783,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args:Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc:SparkContext = new SparkContext(conf)
 
         val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
@@ -823,9 +823,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args:Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc:SparkContext = new SparkContext(conf)
 
         val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5))
@@ -860,9 +860,9 @@ import org.apache.spark.{SparkConf, SparkContext}
  * @author 岳昌宏
  * @date 2021/8/16 19:46
  */
-object Text {
+object Test {
     def main(args:Array[String]) : Unit = {
-        val conf: SparkConf = new SparkConf().setAppName("Text").setMaster("local[*]")
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
         val sc:SparkContext = new SparkContext(conf)
 
         val rdd1: RDD[Int] = sc.makeRDD(List(1, 2, 3, 4, 5), 2)
@@ -887,4 +887,150 @@ object Text {
 
 ### key-Value类型
 
-#### 
+#### partitionBy
+
+**rdd.partitionBy(partitioner:Partitioner)**
+
+将RDD[K,V]中的K按照指定的Partitioner重新分区，如果原有的partitionRDD和现有的partitionRDD是一致的话，就不进行分区，否则会进行shuffle过程，RDD本身是没有partitionBy的，通过隐式转换动态给kv类型的RDD扩展的功能。
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(Int, String)] = sc.parallelize(List((1, "张三"), (2, "李四"), (3, "王二"), (4, "麻子")), 2)
+
+        sourceRDD.mapPartitionsWithIndex((index, iter) => {
+            println(index + "------>" + iter.mkString(" "))
+            iter
+        }).collect()
+
+        println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+        val partitionByRDD: RDD[(Int, String)] = sourceRDD.partitionBy(new HashPartitioner(4))
+
+        partitionByRDD.mapPartitionsWithIndex((index, iter) => {
+            println(index + "------>" + iter.mkString(" "))
+            iter
+        }).collect()
+
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1------>(3,王二) (4,麻子)
+0------>(1,张三) (2,李四)
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+2------>(2,李四)
+0------>(4,麻子)
+1------>(1,张三)
+3------>(3,王二)
+*/
+```
+
+#### 自定义分区器
+
+```scala
+class MyPartition(partition: Int) extends Partitioner{
+    override def numPartitions: Int = ???
+    
+    override def getPartition(key: Any): Int = ???
+}
+```
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(Int, String)] = sc.parallelize(List((1, "张三"), (2, "李四"), (3, "王二"), (4, "麻子")), 2)
+
+        sourceRDD.mapPartitionsWithIndex((index, iter) => {
+            println(index + "------>" + iter.mkString(" "))
+            iter
+        }).collect()
+
+        println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+
+        val partitionByRDD: RDD[(Int, String)] = sourceRDD.partitionBy(new MyPartition(4))
+
+        partitionByRDD.mapPartitionsWithIndex((index, iter) => {
+            println(index + "------>" + iter.mkString(" "))
+            iter
+        }).collect()
+
+
+        sc.stop()
+    }
+
+
+}
+
+class MyPartition(partition: Int) extends Partitioner{
+    override def numPartitions: Int = partition // 分区的个数
+
+    override def getPartition(key: Any): Int = {
+        val i: Int = key.asInstanceOf[Int]
+        i match {
+            case i if i == 1 => 0
+            case i if i == 2 => 1
+            case i if i == 3 => 2
+            case i if i == 4 => 3
+        }
+    }
+}
+```
+
+#### reduceByKey
+
+**rdd.reduceByKey(func:(v,v) => V, numPartitions:Int)**
+
+reduceByKey操作可以将RDD[(K,V)]中的元素按照相同的k对v进行聚合，其存在多种重载形式，还可以设置新的RDD分区数
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+object Spark21_Transformation_reduceByKey {
+    def main(args: Array[String]): Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Spark21_Transformation_reduceByKey").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val rdd: RDD[(String, Int)] = sc.makeRDD(List(("a", 1), ("b", 3), ("a", 5), ("b", 2)))
+
+        rdd.reduceByKey((i, j) => i + j).collect.foreach(println)
+
+        sc.stop()
+    }
+
+}
+/*
+输出结果
+(a,6)
+(b,5)
+*/
+```
+

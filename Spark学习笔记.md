@@ -1034,3 +1034,441 @@ object Spark21_Transformation_reduceByKey {
 */
 ```
 
+#### groupByKey
+
+**rdd.groupByKey()**
+
+groupByKey对每个key进行操作，但只生成一个Seq，并不进行聚合，该操作可以指定分区器，或者分区数（默认使用HashPartitioner）
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val arrRDD: RDD[(Int, Any)] = sc.parallelize(Array((1, "张三"), (2, "李四"), (1, 20), (2, 18)))
+
+        val resRDD: RDD[(Int, Iterable[Any])] = arrRDD.groupByKey()
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+(1,CompactBuffer(张三, 20))
+(2,CompactBuffer(李四, 18))
+*/
+```
+
+#### reduceByKey和groupByKey的区别
+
+reduceByKey：按照key进行聚合，在Shuffle之前，在combine（预聚合）操作，返回结果是RDD[K, V]
+
+groupByKey：按照Key进行分组，直接进行shuffle
+
+开发指导：在不影响业务逻辑的前提下，优先选用reduceByKey，求和操作不影响业务逻辑，求平均值影响业务逻辑
+
+#### aggregateByKey
+
+**rdd.aggregateByKey(zeroValue:U)(seqOp:(U,V) => U, combOp:(U, U) => U)**
+
+**zeroValue（初始值）：给每一个分区中的每一种key一个初始值**
+
+**seqOp（分区内）：函数用于在每一个分区中用初始值逐步迭代value（分区内的计算规则）**
+
+**combOp（分区间）：函数用于分区合并每个分区中的结果**
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *	分区最大值求和
+ *	分区内的最大值，然后分区间求和
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(String, Int)] = sc.parallelize(List(("a", 3), ("a", 2), ("c", 4), ("b", 3), ("c", 6), ("c", 8)), 2)
+
+        sourceRDD.mapPartitionsWithIndex((index, iter) => {
+            println("分区编号为：" + index + " >>>:" + iter.mkString(" "))
+            iter
+        }).collect()
+
+        println("----------------------------------")
+
+        // 需求：分区最大值求和
+        val resRDD: RDD[(String, Int)] = sourceRDD.aggregateByKey(0)(math.max, (_ + _))
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+分区编号为：0 >>>:(a,3) (a,2) (c,4)
+分区编号为：1 >>>:(b,3) (c,6) (c,8)
+----------------------------------
+(b,3)
+(a,3)
+(c,12)
+
+*/
+```
+
+#### foldByKey
+
+**rdd.foldByKey(zeroValye:V)(func:(V, V) => V)**
+
+**zeroValue：是一个初始值，它可以是任意类型**
+
+**func：是一个函数，两个输入参数相同**
+
+aggregateByKey的简化操作，seqOp和combOp相同，即分区内逻辑和分区间逻辑相同
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(String, Int)] = sc.parallelize(List(("a", 3), ("a", 2), ("c", 4), ("b", 3), ("c", 6), ("c", 8)), 2)
+
+        sourceRDD.mapPartitionsWithIndex((index, iter) => {
+            println("分区编号为：" + index + " >>>:" + iter.mkString(" "))
+            iter
+        }).collect()
+
+        println("----------------------------------")
+
+        // 每个k的初始值为6，求最大值
+        val resRDD: RDD[(String, Int)] = sourceRDD.foldByKey(6)(math.max)
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+分区编号为：0 >>>:(a,3) (a,2) (c,4)
+分区编号为：1 >>>:(b,3) (c,6) (c,8)
+----------------------------------
+(b,6)
+(a,6)
+(c,8)
+*/
+```
+
+#### reduceByKey，arrgegateByKey和foldByKey的使用区别
+
+如果分区内和分区间的计算规则一样，并且不需要指定初始值，那么优先使用reduceByKey
+
+如果分区内和分区间计算规则一样，并且需要指定初始值，那么优先使用foldByKey
+
+如果分区内和分区间计算规则不一样，并且需要指定初始值，那么优先使用aggregateByKey
+
+#### combineByKey
+
+**rdd.combineByKey[C]{**
+
+​	**createCombiner : V => C**	
+
+​	**mergeValue : (C,V) => C**
+
+​	**mergeCombiner : (C, C) => C**
+
+**}**
+
+**createCombiner : V => C ”分组内的创建组合函数的函数,通俗点就是对读进来的数据进行初始化，把当前的值作为参数，可以对该值做一些转换操作，转换我我们想要的数据格式“**
+
+**mergeValue : (C,V) => C ”该函数主要是分区内的合并函数，作用在每一个分区内部。其功能主要是将V合并到之前的元素C上，这里的C指的是上一函数转换之后的数据格式，而这里的V指的是原始数据格式“**
+
+**mergeCombiners : (C, C) => R ”该函数主要是进行多分区合并，此时是将两个C合并为一个C“**
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/7/31 20:35
+ */
+object Spark25_Transformation_combineByKey {
+    def main(args: Array[String]): Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Spark25_Transformation_combineByKey").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        // 求出每一个学生的平均成绩
+        val scoreRDD: RDD[(String, Int)] = sc.makeRDD(List(("jingjing", 90), ("yuechanghong", 98), ("jingjing", 88), ("yuechanghong", 86), ("jingjing", 92), ("yuechanghong", 96)))
+
+
+        val rdd: RDD[(String, (Int, Int))] = scoreRDD.combineByKey(
+            			   (_, 1), 
+                           (tup1: (Int, Int), v) => (tup1._1 + v, tup1._2 + 1),
+                           (tup2: (Int, Int),tup3: (Int, Int)) => (tup2._1 + tup3._1, tup2._2 + tup3._2)
+        )
+
+        rdd.map{
+           case (name, date) => (name,date._1 / date._2)
+        }.collect.foreach(println)
+
+
+        sc.stop()
+
+    }
+}
+/*
+输出结果
+(jingjing,90)
+(yuechanghong,93)
+*/
+```
+
+#### sortByKey
+
+**rdd.sortByKey(ascending:Boolean = true, numPartitions : Int = self.partitions.length)**
+
+sortByKey按照k进行排序，在一个(K, V)的RDD上调用，K必须实现**Ordered**接口，返回一个按照key进行排序的（K， V）的RDD
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{SparkConf, SparkContext}
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/1 8:25
+ */
+object Spark16_Transformation_sortByKey {
+    def main(args: Array[String]): Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Spark16_Transformation_sortByKey").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+
+        val rdd: RDD[(Int, String)] = sc.makeRDD(Array((3, "a"), (6, "c"), (2, "bb"), (1, "dd")))
+
+        rdd.sortByKey().collect.foreach(println)
+
+        sc.stop()
+    }
+
+}
+/*
+输出结果
+(1,dd)
+(2,bb)
+(3,a)
+(6,c)
+*/
+```
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(Student, String)] = sc.parallelize(Array((new Student(1, "岳昌宏"), "**"), (new Student(3, "李四"), "**"), (new Student(2, "张三"), "**")))
+
+        sourceRDD.collect().foreach(println)
+
+        println("-------------------------------")
+
+        val resRDD: RDD[(Student, String)] = sourceRDD.sortByKey()
+        resRDD.collect().foreach(println)
+
+
+        sc.stop()
+    }
+
+    class Student(val id:Int, val name:String) extends Ordered[Student] with Serializable {
+
+        override def compare(that: Student): Int = {
+            this.id.compareTo(that.id)
+        }
+
+        override def toString: String = {
+            s"${id} + ${name}"
+        }
+    }
+}
+/*
+输出结果
+(1 + 岳昌宏,**)
+(3 + 李四,**)
+(2 + 张三,**)
+-------------------------------
+(1 + 岳昌宏,**)
+(2 + 张三,**)
+(3 + 李四,**)
+*/
+```
+
+#### mapValues
+
+**rdd.mapValues(f : U => U)**
+
+mapValues针对于(k,v)形式的类型只对v进行操作
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[(Int, String)] = sc.makeRDD(List((1, "张三"), (2, "李四"), (3, "王二"), (4, "麻子")))
+
+        val resRDD: RDD[(Int, String)] = sourceRDD.mapValues(_ + "**")
+        
+        resRDD.collect().foreach(println)
+        
+        sc.stop()
+    }
+}
+/*
+输出结果
+(1,张三**)
+(2,李四**)
+(3,王二**)
+(4,麻子**)
+*/
+```
+
+#### join
+
+**rdd.join(other:RDD)**
+
+join连接操作，将相同key对应的多个value关联在一起，在类型（K, V）和（K，W）的RDD上调用，返回一个相同key对应的所有元素对在一起的（K, (V, W)）的RDD，如果key只是某一个RDD有，这个key不会关联
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD1: RDD[(Int, String)] = sc.makeRDD(List((1, "张三"), (2, "李四"), (3, "王二"), (4, "麻子"), (6, "学院")))
+        val sourceRDD2: RDD[(Int, String)] = sc.makeRDD(List((1, "商丘"), (2, "师范"), (3, "学院"), (4, "信息"), (5, "技术")))
+
+        val resRDD: RDD[(Int, (String, String))] = sourceRDD1.join(sourceRDD2)
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+(1,(张三,商丘))
+(2,(李四,师范))
+(3,(王二,学院))
+(4,(麻子,信息))
+*/
+```
+
+#### cogroup
+
+**rdd.cogroup(other1:RDD[(K, V)], other1:RDD[(K, V)])**
+
+在类型为（K， V）和（K,  W）的RDD上调用，返回一个(K, (Iterable<V>,  Iterable<W>))类型的RDD
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+
+/**
+ * TODO
+ *
+ * @author 岳昌宏
+ * @date 2021/8/16 19:46
+ */
+object Test {
+    def main(args:Array[String]) :Unit = {
+        val conf: SparkConf = new SparkConf().setAppName("Test").setMaster("local[*]")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD1: RDD[(Int, String)] = sc.makeRDD(List((1, "张三"), (1, "李四"), (2, "王二"), (2, "麻子"), (3, "学院")))
+        val sourceRDD2: RDD[(Int, String)] = sc.makeRDD(List((1, "商丘"), (1, "师范"), (2, "学院"), (2, "信息"), (4, "技术")))
+
+        val resRDD: RDD[(Int, (Iterable[String], Iterable[String]))] = sourceRDD1.cogroup(sourceRDD2)
+
+        resRDD.collect().foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+(1,(CompactBuffer(张三, 李四),CompactBuffer(商丘, 师范)))
+(2,(CompactBuffer(王二, 麻子),CompactBuffer(学院, 信息)))
+(3,(CompactBuffer(学院),CompactBuffer()))
+(4,(CompactBuffer(),CompactBuffer(技术)))
+*/
+```
+
+## Action行动算子
+
+行动算子是触发了整个作业的执行，转换算子都是懒加载，并不会立即执行

@@ -1472,3 +1472,197 @@ object Test {
 ## Action行动算子
 
 行动算子是触发了整个作业的执行，转换算子都是懒加载，并不会立即执行
+
+### reduce
+
+**rdd.reduce(f : (U,U) => U)**
+
+f函数聚集RDD中的所有元素，先聚合分区内数据，再聚合分区间的数据
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+object Test {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4))
+
+        val res: Int = sourceRDD.reduce(_ + _)
+
+        println(res)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+10
+*/
+```
+
+
+
+### collect
+
+**rdd.collect()**
+
+在驱动程序中，以数组Array的形式返回数据集的所有元素，将每一个Excutor中的数据收集到Driver端
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+object Test {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[Int] = sc.parallelize(List(1, 2, 3, 4))
+
+        val res: Array[Int] = sourceRDD.collect()
+
+        res.foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果：
+1
+2
+3
+4
+*/
+```
+
+### foreach
+
+**rdd.foreach(f : T => Unit)**
+
+遍历RDD中的每一个元素，并依次应用f函数
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+object Test {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[Int] = sc.parallelize(List(1, 2, 3))
+
+        sourceRDD.foreach(println)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+2
+3
+*/
+```
+
+### count
+
+**rdd.count():Long**
+
+返回RDD中的元素
+
+### first
+
+**rdd.first():T**
+
+返回RDD中的第一个元素
+
+### take
+
+**rdd.take(num:Int):Array[T]**
+
+返回由RDD前n个元素组成的数组
+
+### takeOrdered
+
+**rdd.takeOrdered(num : Int)(implicit ord : Ordering[T]) : Arrya[T]**
+
+返回该RDD排序后前n个元素组成的数组
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+object Test {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[Int] = sc.parallelize(List(1, 6, 1, 23, 4))
+
+        val res: Array[Int] = sourceRDD.takeOrdered(4)
+
+        res.foreach(println)
+
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+1
+1
+4
+6
+*/
+```
+
+### aggregate
+
+**rdd.aggregate(zeroValue : U)(SeqOp : (U, T)=>U, CombOp : (U, U) => U) : U**
+
+arrregate函数将每个分区里面的元素通过分区内逻辑和初始值进行聚合，然后用分区间逻辑和初始值进行操作，注意：分区间逻辑再次使用初始值和arrregateByKey是有区别的
+
+```scala
+import org.apache.spark.rdd.RDD
+import org.apache.spark.{HashPartitioner, Partitioner, SparkConf, SparkContext}
+
+object Test {
+    def main(args : Array[String]) : Unit = {
+        val conf: SparkConf = new SparkConf().setMaster("local[*]").setAppName("Text")
+        val sc = new SparkContext(conf)
+
+        val sourceRDD: RDD[Int] = sc.parallelize(List(1, 6, 1, 23, 4))
+
+
+        sourceRDD.mapPartitionsWithIndex((index, iter) => {
+            println(index + ">>>>>" + iter.mkString(" "))
+            iter
+        }).collect().foreach(println)
+
+        println("-----------------------------------------------")
+
+        val res: Int = sourceRDD.aggregate(10)(Math.max, _ + _)
+
+        println(res)
+
+        sc.stop()
+    }
+}
+/*
+输出结果
+5>>>>>
+7>>>>>4
+0>>>>>
+1>>>>>1
+6>>>>>23
+3>>>>>6
+2>>>>>
+4>>>>>1
+-----------------------------------------------
+103
+*/
+```

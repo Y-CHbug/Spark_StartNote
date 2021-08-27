@@ -1666,3 +1666,27 @@ object Test {
 103
 */
 ```
+
+### fold
+
+**rdd.fold(zeroValue : T)(Op : (T, T) => T)**
+
+折叠操作，aggregate的简化操作，即分区内逻辑和分区间逻辑相同
+
+### countByKey()
+
+**rdd.countByKey()**
+
+统计每种key的个数
+
+### saveAsTextFile(path)
+
+将数据集的元素以textfile的形式保存到HDFS文件系统或者其他支持的文件系统，对于每个元素，spark将会调用toString方法，将它转换成文件中的文本
+
+### saveAsSequenceFile(path)
+
+将数据集中的元素以Hadoop Sequencefile的格式保存到指定目录下，可以使用HDFS或其他Hadoop支持的文件（只有kv类型RDD有该操作，单值没有）
+
+### saveAsObjectFile(path)
+
+用于将RDD中的元素序列化成对象，存储到文件中
